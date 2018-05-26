@@ -1,0 +1,27 @@
+{
+  "name": "lambda-eventPush",
+  "version": "1.0.0",
+  "description": "aws lambda event push",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "local"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "php",
+    "trigger"
+  ],
+  "author": "Samuel Ventimiglia",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.179.0"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^1.7.0"
+  }
+}
