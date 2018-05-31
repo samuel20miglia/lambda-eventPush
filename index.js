@@ -1,262 +1,180 @@
-'use strict';
+'use strict'
 
 var AWS = require('aws-sdk');
+var env = require('env.json');
+var appId = null;
 
 var pinpoint = new AWS.Pinpoint();
-// Create the DynamoDB service object
-var dynamoDb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
 
-exports.handler = async (event) => {
+// strart
+exports.pusHandler = function(event) {
 
-	/* start only for event 'modify' */
-	const eventName = event.Records.eventName;
+	if(env === 'development'){
+		appId ='67ce6742902e4423875d38aa29d9fa72';
+	}else {
+		appId = '738c8516cfd04b71844a415581eba7c0';
+	}
 
-	/* table name for dev */
-	const tableName = "cocconappdev-mobilehub-130310095-event";
+	var params = {ApplicationId: appId, /* required */};
 
-	/* object to bring fom table */
-	var record = event.Records.dynamodb;
+    /* type of event */
+    var eventAction = event.Records[0].eventName;
 
-	/* eventId */
-	const eventId = record.eventId;
+    var eventData = event.Records[0].dynamodb;
+    eventData = eventData.NewImage;
 
-	var params = {
-			  Key: {
-			   "eventId": {
-			     S:'20180510204032468177'
-			    }
-			  },
-			  TableName: tableName
-			 };
-	/*  search the event data */
-	dynamoDb.getItem(params, function(err, data) {
-	    if (err){
-		   console.log(err, err.stack); // an error occurred
-	    }
-		   console.log(data);           // successful response
-		   console.log(event.Records);
-//	        var params = {
-//				ApplicationId: 'STRING_VALUE', /* required */
-//				WriteCampaignRequest: { /* required */
-//			    AdditionalTreatments: [
-//			      {
-//			        MessageConfiguration: {
-//			          ADMMessage: {
-//			            Action: 'OPEN_APP',
-//			            Body: 'STRING_VALUE',
-//			            ImageIconUrl: 'STRING_VALUE',
-//			            ImageSmallIconUrl: 'STRING_VALUE',
-//			            ImageUrl: 'STRING_VALUE',
-//			            JsonBody: 'STRING_VALUE',
-//			            MediaUrl: 'STRING_VALUE',
-//			            RawContent: 'STRING_VALUE',
-//			            SilentPush: true || false,
-//			            Title: 'STRING_VALUE',
-//			            Url: 'STRING_VALUE'
-//			          },
-//			          APNSMessage: {
-//			            Action: OPEN_APP | DEEP_LINK | URL,
-//			            Body: 'STRING_VALUE',
-//			            ImageIconUrl: 'STRING_VALUE',
-//			            ImageSmallIconUrl: 'STRING_VALUE',
-//			            ImageUrl: 'STRING_VALUE',
-//			            JsonBody: 'STRING_VALUE',
-//			            MediaUrl: 'STRING_VALUE',
-//			            RawContent: 'STRING_VALUE',
-//			            SilentPush: true || false,
-//			            Title: 'STRING_VALUE',
-//			            Url: 'STRING_VALUE'
-//			          },
-//			          BaiduMessage: {
-//			            Action: OPEN_APP | DEEP_LINK | URL,
-//			            Body: 'STRING_VALUE',
-//			            ImageIconUrl: 'STRING_VALUE',
-//			            ImageSmallIconUrl: 'STRING_VALUE',
-//			            ImageUrl: 'STRING_VALUE',
-//			            JsonBody: 'STRING_VALUE',
-//			            MediaUrl: 'STRING_VALUE',
-//			            RawContent: 'STRING_VALUE',
-//			            SilentPush: true || false,
-//			            Title: 'STRING_VALUE',
-//			            Url: 'STRING_VALUE'
-//			          },
-//			          DefaultMessage: {
-//			            Action: OPEN_APP | DEEP_LINK | URL,
-//			            Body: 'STRING_VALUE',
-//			            ImageIconUrl: 'STRING_VALUE',
-//			            ImageSmallIconUrl: 'STRING_VALUE',
-//			            ImageUrl: 'STRING_VALUE',
-//			            JsonBody: 'STRING_VALUE',
-//			            MediaUrl: 'STRING_VALUE',
-//			            RawContent: 'STRING_VALUE',
-//			            SilentPush: true || false,
-//			            Title: 'STRING_VALUE',
-//			            Url: 'STRING_VALUE'
-//			          },
-//			          EmailMessage: {
-//			            Body: 'STRING_VALUE',
-//			            FromAddress: 'STRING_VALUE',
-//			            HtmlBody: 'STRING_VALUE',
-//			            Title: 'STRING_VALUE'
-//			          },
-//			          GCMMessage: {
-//			            Action: OPEN_APP | DEEP_LINK | URL,
-//			            Body: 'STRING_VALUE',
-//			            ImageIconUrl: 'STRING_VALUE',
-//			            ImageSmallIconUrl: 'STRING_VALUE',
-//			            ImageUrl: 'STRING_VALUE',
-//			            JsonBody: 'STRING_VALUE',
-//			            MediaUrl: 'STRING_VALUE',
-//			            RawContent: 'STRING_VALUE',
-//			            SilentPush: true || false,
-//			            Title: 'STRING_VALUE',
-//			            Url: 'STRING_VALUE'
-//			          },
-//			          SMSMessage: {
-//			            Body: 'STRING_VALUE',
-//			            MessageType: TRANSACTIONAL | PROMOTIONAL,
-//			            SenderId: 'STRING_VALUE'
-//			          }
-//			        },
-//			        Schedule: {
-//			          EndTime: 'STRING_VALUE',
-//			          Frequency: ONCE | HOURLY | DAILY | WEEKLY | MONTHLY,
-//			          IsLocalTime: true || false,
-//			          QuietTime: {
-//			            End: 'STRING_VALUE',
-//			            Start: 'STRING_VALUE'
-//			          },
-//			          StartTime: 'STRING_VALUE',
-//			          Timezone: 'STRING_VALUE'
-//			        },
-//			        SizePercent: 0,
-//			        TreatmentDescription: 'STRING_VALUE',
-//			        TreatmentName: 'STRING_VALUE'
-//			      },
-//			      /* more items */
-//			    ],
-//			    Description: 'STRING_VALUE',
-//			    HoldoutPercent: 0,
-//			    Hook: {
-//			      LambdaFunctionName: 'STRING_VALUE',
-//			      Mode: DELIVERY | FILTER,
-//			      WebUrl: 'STRING_VALUE'
-//			    },
-//			    IsPaused: true || false,
-//			    Limits: {
-//			      Daily: 0,
-//			      MaximumDuration: 0,
-//			      MessagesPerSecond: 0,
-//			      Total: 0
-//			    },
-//			    MessageConfiguration: {
-//			      ADMMessage: {
-//			        Action: OPEN_APP | DEEP_LINK | URL,
-//			        Body: 'STRING_VALUE',
-//			        ImageIconUrl: 'STRING_VALUE',
-//			        ImageSmallIconUrl: 'STRING_VALUE',
-//			        ImageUrl: 'STRING_VALUE',
-//			        JsonBody: 'STRING_VALUE',
-//			        MediaUrl: 'STRING_VALUE',
-//			        RawContent: 'STRING_VALUE',
-//			        SilentPush: true || false,
-//			        Title: 'STRING_VALUE',
-//			        Url: 'STRING_VALUE'
-//			      },
-//			      APNSMessage: {
-//			        Action: OPEN_APP | DEEP_LINK | URL,
-//			        Body: 'STRING_VALUE',
-//			        ImageIconUrl: 'STRING_VALUE',
-//			        ImageSmallIconUrl: 'STRING_VALUE',
-//			        ImageUrl: 'STRING_VALUE',
-//			        JsonBody: 'STRING_VALUE',
-//			        MediaUrl: 'STRING_VALUE',
-//			        RawContent: 'STRING_VALUE',
-//			        SilentPush: true || false,
-//			        Title: 'STRING_VALUE',
-//			        Url: 'STRING_VALUE'
-//			      },
-//			      BaiduMessage: {
-//			        Action: OPEN_APP | DEEP_LINK | URL,
-//			        Body: 'STRING_VALUE',
-//			        ImageIconUrl: 'STRING_VALUE',
-//			        ImageSmallIconUrl: 'STRING_VALUE',
-//			        ImageUrl: 'STRING_VALUE',
-//			        JsonBody: 'STRING_VALUE',
-//			        MediaUrl: 'STRING_VALUE',
-//			        RawContent: 'STRING_VALUE',
-//			        SilentPush: true || false,
-//			        Title: 'STRING_VALUE',
-//			        Url: 'STRING_VALUE'
-//			      },
-//			      DefaultMessage: {
-//			        Action: OPEN_APP | DEEP_LINK | URL,
-//			        Body: 'STRING_VALUE',
-//			        ImageIconUrl: 'STRING_VALUE',
-//			        ImageSmallIconUrl: 'STRING_VALUE',
-//			        ImageUrl: 'STRING_VALUE',
-//			        JsonBody: 'STRING_VALUE',
-//			        MediaUrl: 'STRING_VALUE',
-//			        RawContent: 'STRING_VALUE',
-//			        SilentPush: true || false,
-//			        Title: 'STRING_VALUE',
-//			        Url: 'STRING_VALUE'
-//			      },
-//			      EmailMessage: {
-//			        Body: 'STRING_VALUE',
-//			        FromAddress: 'STRING_VALUE',
-//			        HtmlBody: 'STRING_VALUE',
-//			        Title: 'STRING_VALUE'
-//			      },
-//			      GCMMessage: {
-//			        Action: OPEN_APP | DEEP_LINK | URL,
-//			        Body: 'STRING_VALUE',
-//			        ImageIconUrl: 'STRING_VALUE',
-//			        ImageSmallIconUrl: 'STRING_VALUE',
-//			        ImageUrl: 'STRING_VALUE',
-//			        JsonBody: 'STRING_VALUE',
-//			        MediaUrl: 'STRING_VALUE',
-//			        RawContent: 'STRING_VALUE',
-//			        SilentPush: true || false,
-//			        Title: 'STRING_VALUE',
-//			        Url: 'STRING_VALUE'
-//			      },
-//			      SMSMessage: {
-//			        Body: 'STRING_VALUE',
-//			        MessageType: TRANSACTIONAL | PROMOTIONAL,
-//			        SenderId: 'STRING_VALUE'
-//			      }
-//			    },
-//			    Name: 'STRING_VALUE',
-//			    Schedule: {
-//			      EndTime: 'STRING_VALUE',
-//			      Frequency: ONCE | HOURLY | DAILY | WEEKLY | MONTHLY,
-//			      IsLocalTime: true || false,
-//			      QuietTime: {
-//			        End: 'STRING_VALUE',
-//			        Start: 'STRING_VALUE'
-//			      },
-//			      StartTime: 'STRING_VALUE',
-//			      Timezone: 'STRING_VALUE'
-//			    },
-//			    SegmentId: 'STRING_VALUE',
-//			    SegmentVersion: 0,
-//			    TreatmentDescription: 'STRING_VALUE',
-//			    TreatmentName: 'STRING_VALUE'
-//			  }
-//			};
-//
-//
-//	pinpoint.createCampaign(params, function(err, data) {
-//	  if (err){
-//		  console.log(err, err.stack); // an error occurred
-//	  }
-//	  else {
-//		  console.log(data);           // successful response
-//		  return "Finish execution";
-//	  }
-//	});
+    var promocode = false;
+    if (typeof(eventData.promocode) != "undefined"){
+    	promocode = eventData.promocode.S;
+    }
+    var dateTimeStart = false;
+    if (typeof(eventData.dateTimeStart) != "undefined"){
+    	dateTimeStart = eventData.dateTimeStart.S;
+    }
+    var dateTimeStop = false;
+    if (typeof(eventData.dateTimeStop) != "undefined"){
+    	dateTimeStop = eventData.dateTimeStop.S;
+    }
+    var dateCreation = false;
+    if (typeof(eventData.dateCreation) != "undefined"){
+    	dateCreation = eventData.dateCreation.S;
+    }
+    var eventType = false;
+    if (typeof(eventData.eventType) != "undefined"){
+    	eventType = eventData.eventType.S;
+    }
+    var pointId = false;
+    if (typeof(eventData.pointId) != "undefined"){
+    	pointId = eventData.pointId.S;
+    }
+    var mobilePhone = false;
+    if (typeof(eventData.mobilePhone) != "undefined"){
+    	mobilePhone = eventData.mobilePhone.S;
+    }
+    var rangeKm = false;
+    if (typeof(eventData.rangeKm) != "undefined"){
+    	rangeKm = eventData.rangeKm.S;
+    }
+    var price = false;
+    if (typeof(eventData.price) != "undefined"){
+    	price = eventData.price.S;
+    }
+    var category = false;
+    if (typeof(eventData.category) != "undefined"){
+    	category = eventData.category.S;
+    }
+    var email = false;
+    if (typeof(eventData.email) != "undefined"){
+    	email = eventData.email.S;
+    }
+    var maxUser = false;
+    if (typeof(eventData.maxUser) != "undefined"){
+    	maxUser = eventData.maxUser.S;
+    }
+    var status = false;
+    if (typeof(eventData.status) != "undefined"){
+    	status = eventData.status.BOOL;
+    }
+    var deleted = false;
+    if (typeof(eventData.deleted) != "undefined"){
+    	deleted = eventData.deleted.BOOL;
+    }
+    var dateUpdate = false;
+    if (typeof(eventData.dateUpdate) != "undefined"){
+    	dateUpdate = eventData.dateUpdate.S;
+    }
 
-	});// end getItem dynamoDb
-	return "End execution";
+    /* check if the event is paid or with promocode */
+    if((!eventData.paymentRef.S || eventData.paymentRef.S.lenght == 0
+    		|| eventData.paymentRef.S == 'null' || eventData.paymentRef.S == 'np')
+    		&& (!promocode || promocode == null || promocode.lenght <= 3)){
+    	console.log("Not paid or wjthout promocode. skipped");
+    	return;
+    }
+
+    /* check if modify */
+    if(eventAction !== 'MODIFY'){
+    	console.log("Not modify skipped");
+    	return;
+    }
+	// get the segment
+	pinpoint.getSegments(params, function(err, data) {
+	  if (err){
+	   console.log(err, err.stack); // an error occurred
+	   return;
+	 }
+	  var eventId = eventData.eventId.S;
+	  var obj = {
+			  "eventId":eventId,
+			  "dateTimeStart":dateTimeStart,
+			  "dateTimeStop":dateTimeStop,
+			  "dateCreation":dateCreation,
+			  "eventType":eventType,
+			  "pointId":pointId,
+			  "mobilePhone":mobilePhone,
+			  "rangeKm":rangeKm,
+			  "price":price,
+			  "category":category,
+			  "email":email,
+			  "maxUser":maxUser,
+			  "status":status,
+			  "deleted":deleted,
+			  "dateUpdate":dateUpdate,
+			  "promocode":promocode
+	  };
+	  var dataJSON = JSON.stringify(obj);
+
+      var push = {
+        Action: 'OPEN_APP',
+        Body: eventData.description.S,
+        ImageIconUrl: eventData.logoUrl.S,
+        ImageSmallIconUrl: '',
+        ImageUrl: eventData.logoUrl.S,
+        JsonBody: dataJSON,
+        MediaUrl: '',
+        RawContent: '',
+        SilentPush: true,
+        Title: eventData.title.S,
+        Url: ''
+      };
+
+      obj= null;
+      dataJSON = null;
+
+      var d = new Date();
+      var n = d.toISOString();
+
+        var params = {
+				ApplicationId: appId, /* required */
+				WriteCampaignRequest: { /* required */
+			    Description: 'Event Push',
+			    HoldoutPercent: 0,
+			    IsPaused:false,
+			    MessageConfiguration: {
+			      APNSMessage: push,
+			      GCMMessage: push
+			    },
+			    Name: 'Silent event: '+eventId,
+			    Schedule: {
+			      Frequency: 'ONCE',
+			      StartTime: n,
+			      IsLocalTime: true
+			    },
+			    SegmentId: data.SegmentsResponse.Item[0].Id,
+			    SegmentVersion: 1
+			  }
+			};
+
+        /* create the campaign */
+		pinpoint.createCampaign(params, function(err, data) {
+		  if (err){
+			 console.log(err, err.stack); // an error occurred
+			 return "Error create campaign";
+		  }
+		    // successful response
+		  	console.log(data);
+		});
+
+	});
+	return "Finish execution";
 };

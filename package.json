@@ -19,7 +19,9 @@
   "author": "Samuel Ventimiglia",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.179.0"
+    "async": "^2.6.1",
+    "aws-sdk": "^2.248.1",
+    "dynamodb": "*"
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0"
