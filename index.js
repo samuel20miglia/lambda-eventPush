@@ -1,45 +1,48 @@
 'use strict'
 
 var AWS = require('aws-sdk');
-var env = require('env.json');
 var appId = null;
-
+var ddb = new AWS.DynamoDB();
 var pinpoint = new AWS.Pinpoint();
 
 // strart
 exports.pusHandler = function(event) {
 
-	if(env === 'development'){
-		appId ='67ce6742902e4423875d38aa29d9fa72';
-	}else {
-		appId = '738c8516cfd04b71844a415581eba7c0';
-	}
-
-	var params = {ApplicationId: appId, /* required */};
+		appId = '67ce6742902e4423875d38aa29d9fa72';
+	var params = {ApplicationId: appId};
 
     /* type of event */
     var eventAction = event.Records[0].eventName;
 
     var eventData = event.Records[0].dynamodb;
+
+     /* check if modify */
+    if(eventAction !== 'MODIFY'){
+    	console.log("Not modify skipped");
+    	return;
+    }
+
     eventData = eventData.NewImage;
+
+    console.log(eventData);
 
     var promocode = false;
     if (typeof(eventData.promocode) != "undefined"){
     	promocode = eventData.promocode.S;
     }
-    var dateTimeStart = false;
+    var dateTimeStart = "";
     if (typeof(eventData.dateTimeStart) != "undefined"){
     	dateTimeStart = eventData.dateTimeStart.S;
     }
-    var dateTimeStop = false;
+    var dateTimeStop = "";
     if (typeof(eventData.dateTimeStop) != "undefined"){
     	dateTimeStop = eventData.dateTimeStop.S;
     }
-    var dateCreation = false;
+    var dateCreation = "";
     if (typeof(eventData.dateCreation) != "undefined"){
     	dateCreation = eventData.dateCreation.S;
     }
-    var eventType = false;
+    var eventType = "";
     if (typeof(eventData.eventType) != "undefined"){
     	eventType = eventData.eventType.S;
     }
@@ -47,55 +50,106 @@ exports.pusHandler = function(event) {
     if (typeof(eventData.pointId) != "undefined"){
     	pointId = eventData.pointId.S;
     }
-    var mobilePhone = false;
+    var mobilePhone = "";
     if (typeof(eventData.mobilePhone) != "undefined"){
     	mobilePhone = eventData.mobilePhone.S;
     }
-    var rangeKm = false;
+    var rangeKm = "";
     if (typeof(eventData.rangeKm) != "undefined"){
     	rangeKm = eventData.rangeKm.S;
     }
-    var price = false;
+    var price = "";
     if (typeof(eventData.price) != "undefined"){
     	price = eventData.price.S;
     }
-    var category = false;
+    var category = "";
     if (typeof(eventData.category) != "undefined"){
     	category = eventData.category.S;
     }
-    var email = false;
+    var email = "";
     if (typeof(eventData.email) != "undefined"){
     	email = eventData.email.S;
     }
-    var maxUser = false;
+    var maxUser = "";
     if (typeof(eventData.maxUser) != "undefined"){
     	maxUser = eventData.maxUser.S;
     }
-    var status = false;
+    var status = true;
     if (typeof(eventData.status) != "undefined"){
     	status = eventData.status.BOOL;
     }
-    var deleted = false;
+    var deleted = "";
     if (typeof(eventData.deleted) != "undefined"){
     	deleted = eventData.deleted.BOOL;
     }
-    var dateUpdate = false;
+    var dateUpdate = "";
     if (typeof(eventData.dateUpdate) != "undefined"){
     	dateUpdate = eventData.dateUpdate.S;
     }
 
+    var paymentRef = "";
+    if (typeof(eventData.paymentRef) != "undefined"){
+    	 paymentRef = eventData.paymentRef.S;
+    }
+
+    var eventId = "";
+    if (typeof(eventData.eventId) != "undefined"){
+    	 eventId = eventData.eventId.S;
+    }
+
+    var description = "A new wonderfull event was sheduled";
+    if (typeof(eventData.description) != "undefined"){
+    	 description = eventData.description.S;
+    }
+
+    var logoUrl = "";
+    if (typeof(eventData.logoUrl) != "undefined"){
+    	 logoUrl = eventData.logoUrl.S;
+    }
+
+    var title = "Great, there is a new event";
+    if (typeof(eventData.title) != "undefined"){
+    	 title = eventData.title.S;
+    }
+
     /* check if the event is paid or with promocode */
-    if((!eventData.paymentRef.S || eventData.paymentRef.S.lenght == 0
-    		|| eventData.paymentRef.S == 'null' || eventData.paymentRef.S == 'np')
-    		&& (!promocode || promocode == null || promocode.lenght <= 3)){
+    if((!paymentRef || paymentRef.length == 0
+    		|| paymentRef == 'null' || paymentRef == 'np')
+    		&& (!promocode || promocode == null || promocode.length <= 3)){
     	console.log("Not paid or wjthout promocode. skipped");
     	return;
     }
 
-    /* check if modify */
-    if(eventAction !== 'MODIFY'){
-    	console.log("Not modify skipped");
-    	return;
+    var gpsLng = 0;
+    var gpsLat = 0;
+    var pointLogo = "";
+    if(pointId){
+
+         var table = {
+              Key: {
+               "pointId": {
+                 S: pointId
+                }
+              },
+          TableName: "cocconappdev-mobilehub-130310095-static_point"
+          };
+       ddb.getItem(table, function(err, pointData) {
+         if (err) console.log(err, err.stack); // an error occurred
+         else     console.log(pointData);           // successful response
+
+         //console.log(data.Item.gpsLat);
+         if (typeof(pointData) != "undefined"){
+    	        gpsLat = pointData.Item.gpsLat.N;
+         }
+
+         if (typeof(pointData.Item.gpsLng) != "undefined"){
+    	        gpsLng = pointData.Item.gpsLng.N;
+         }
+         if (typeof(pointData.Item.logoUrl) != "undefined"){
+    	        pointLogo = pointData.Item.logoUrl.S;
+         }
+       });
+
     }
 	// get the segment
 	pinpoint.getSegments(params, function(err, data) {
@@ -103,7 +157,7 @@ exports.pusHandler = function(event) {
 	   console.log(err, err.stack); // an error occurred
 	   return;
 	 }
-	  var eventId = eventData.eventId.S;
+
 	  var obj = {
 			  "eventId":eventId,
 			  "dateTimeStart":dateTimeStart,
@@ -120,21 +174,27 @@ exports.pusHandler = function(event) {
 			  "status":status,
 			  "deleted":deleted,
 			  "dateUpdate":dateUpdate,
-			  "promocode":promocode
+			  "promocode":promocode,
+			  "gpsLng": gpsLng,
+			  "gpsLat": gpsLat,
+			  "eventLogo":logoUrl,
+			  "pointLogo": pointLogo
 	  };
+
+	  console.log(obj);
 	  var dataJSON = JSON.stringify(obj);
 
       var push = {
         Action: 'OPEN_APP',
-        Body: eventData.description.S,
-        ImageIconUrl: eventData.logoUrl.S,
+        Body: description,
+        ImageIconUrl: logoUrl,
         ImageSmallIconUrl: '',
-        ImageUrl: eventData.logoUrl.S,
+        ImageUrl: logoUrl,
         JsonBody: dataJSON,
         MediaUrl: '',
         RawContent: '',
         SilentPush: true,
-        Title: eventData.title.S,
+        Title: title,
         Url: ''
       };
 
@@ -158,7 +218,7 @@ exports.pusHandler = function(event) {
 			    Schedule: {
 			      Frequency: 'ONCE',
 			      StartTime: n,
-			      IsLocalTime: true
+			      IsLocalTime: false
 			    },
 			    SegmentId: data.SegmentsResponse.Item[0].Id,
 			    SegmentVersion: 1
