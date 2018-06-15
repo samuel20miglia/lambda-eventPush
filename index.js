@@ -19,6 +19,7 @@ exports.pusHandler = function(event) {
      /* check if modify */
     if(eventAction !== 'MODIFY'){
     	console.log("Not modify skipped");
+    	console.log(event);
     	return;
     }
 
@@ -97,20 +98,20 @@ exports.pusHandler = function(event) {
     	 eventId = eventData.eventId.S;
     }
 
-    var description = "A new wonderfull event was sheduled";
-    if (typeof(eventData.description) != "undefined"){
-    	 description = eventData.description.S;
-    }
+    var description = "Get in touch and enjoy with CocconApp.";
+//    if (typeof(eventData.description) != "undefined"){
+//    	 description = eventData.description.S;
+//    }
 
     var logoUrl = "";
     if (typeof(eventData.logoUrl) != "undefined"){
     	 logoUrl = eventData.logoUrl.S;
     }
 
-    var title = "Great, there is a new event";
-    if (typeof(eventData.title) != "undefined"){
-    	 title = eventData.title.S;
-    }
+    var title = "Great, there is a new event ready for you.";
+//    if (typeof(eventData.title) != "undefined"){
+//    	 title = eventData.title.S;
+//    }
 
     /* check if the event is paid or with promocode */
     if((!paymentRef || paymentRef.length == 0
@@ -233,8 +234,9 @@ exports.pusHandler = function(event) {
 		  }
 		    // successful response
 		  	console.log(data);
+		  	return "Finish execution";
 		});
 
 	});
-	return "Finish execution";
+
 };
