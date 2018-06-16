@@ -108,7 +108,7 @@ exports.pusHandler = function(event) {
     	 logoUrl = eventData.logoUrl.S;
     }
 
-    var title = "Great, there is a new event ready for you.";
+    var title = "Great, there is a new event!";
 //    if (typeof(eventData.title) != "undefined"){
 //    	 title = eventData.title.S;
 //    }
